@@ -4,12 +4,17 @@ export async function fetchTodos() {
   try {
     console.log("Fetching todos from:", `${BASE_URL}/api/todos`);
     const res = await fetch(`${BASE_URL}/api/todos`, { cache: "no-store" });
-    const { data, error } = await res.json();
+    console.log("Response status:", res.status, "OK:", res.ok);
+    const text = await res.text(); // Get raw response text for debugging
+    console.log("Response text:", text.slice(0, 100)); // Log first 100 chars
+    const data = JSON.parse(text); // Attempt to parse JSON
     if (!res.ok) {
-      throw new Error(error || `Failed to fetch todos (status: ${res.status})`);
+      throw new Error(
+        data.error || `Failed to fetch todos (status: ${res.status})`
+      );
     }
-    console.log("Fetched todos from API:", data);
-    return data;
+    console.log("Fetched todos from API:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error fetching todos:", error.message, error.stack);
     throw new Error("Failed to fetch todos: " + error.message);
@@ -26,12 +31,17 @@ export async function fetchTodoById(id) {
     const res = await fetch(`${BASE_URL}/api/todos/${id}`, {
       cache: "no-store",
     });
-    const { data, error } = await res.json();
+    console.log("Response status:", res.status, "OK:", res.ok);
+    const text = await res.text();
+    console.log("Response text:", text.slice(0, 100));
+    const data = JSON.parse(text);
     if (!res.ok) {
-      throw new Error(error || `Failed to fetch todo (status: ${res.status})`);
+      throw new Error(
+        data.error || `Failed to fetch todo (status: ${res.status})`
+      );
     }
-    console.log("Fetched todo by ID:", data);
-    return data;
+    console.log("Fetched todo by ID:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error fetching todo by ID:", error.message, error.stack);
     throw error;
@@ -59,12 +69,17 @@ export async function addTodo(newTodo) {
         body: newTodo.body.trim().slice(0, 500),
       }),
     });
-    const { data, error } = await res.json();
+    console.log("Response status:", res.status, "OK:", res.ok);
+    const text = await res.text();
+    console.log("Response text:", text.slice(0, 100));
+    const data = JSON.parse(text);
     if (!res.ok) {
-      throw new Error(error || `Failed to add todo (status: ${res.status})`);
+      throw new Error(
+        data.error || `Failed to add todo (status: ${res.status})`
+      );
     }
-    console.log("Added todo:", data);
-    return data;
+    console.log("Added todo:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error adding todo:", error.message, error.stack);
     throw error;
@@ -102,12 +117,17 @@ export async function updateTodo(id, updates) {
         }),
       }),
     });
-    const { data, error } = await res.json();
+    console.log("Response status:", res.status, "OK:", res.ok);
+    const text = await res.text();
+    console.log("Response text:", text.slice(0, 100));
+    const data = JSON.parse(text);
     if (!res.ok) {
-      throw new Error(error || `Failed to update todo (status: ${res.status})`);
+      throw new Error(
+        data.error || `Failed to update todo (status: ${res.status})`
+      );
     }
-    console.log("Updated todo:", data);
-    return data;
+    console.log("Updated todo:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error updating todo:", error.message, error.stack);
     throw error;
@@ -124,12 +144,17 @@ export async function deleteTodo(id) {
     const res = await fetch(`${BASE_URL}/api/todos/${id}`, {
       method: "DELETE",
     });
-    const { data, error } = await res.json();
+    console.log("Response status:", res.status, "OK:", res.ok);
+    const text = await res.text();
+    console.log("Response text:", text.slice(0, 100));
+    const data = JSON.parse(text);
     if (!res.ok) {
-      throw new Error(error || `Failed to delete todo (status: ${res.status})`);
+      throw new Error(
+        data.error || `Failed to delete todo (status: ${res.status})`
+      );
     }
-    console.log("Deleted todo:", data);
-    return data;
+    console.log("Deleted todo:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error deleting todo:", error.message, error.stack);
     throw error;
