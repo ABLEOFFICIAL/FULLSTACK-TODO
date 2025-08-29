@@ -55,8 +55,8 @@ export default function TodoDetail({ todo, error }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div className="min-h-screen  p-4">
+      <div className="max-w-md mx-auto  p-6 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Edit Todo</h1>
         {clientError && <p className="text-red-500 mb-4">{clientError}</p>}
         <form onSubmit={handleUpdate} className="mb-6">

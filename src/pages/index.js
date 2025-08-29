@@ -1,248 +1,149 @@
 import { useState } from "react";
+import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../utils/helper";
 import Link from "next/link";
-import { fetchTodos, addTodo, deleteTodo, updateTodo } from "../utils/helper";
 
-export default function Home({ initialTodos, error }) {
-  const [todos, setTodos] = useState(initialTodos || []);
+export default function Home({ todos, error }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [formError, setFormError] = useState(null);
-  const [editTodoId, setEditTodoId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editBody, setEditBody] = useState("");
-  const [editError, setEditError] = useState(null);
+  const [clientError, setClientError] = useState(null);
 
-  async function handleAdd(e) {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    setFormError(null);
-
+    if (!title.trim() || !body.trim()) {
+      setClientError("Title and body are required");
+      return;
+    }
     try {
-      const newTodo = await addTodo({ title, body });
-      setTodos((prev) => [...prev, newTodo]);
+      setClientError(null);
+      await addTodo({ title, body });
       setTitle("");
       setBody("");
+      window.location.reload(); // Refresh to fetch updated todos
     } catch (error) {
-      setFormError(error.message || "Failed to add todo");
+      console.error("Error adding todo:", error.message);
+      setClientError("Failed to add todo: " + error.message);
     }
-  }
+  };
 
-  async function handleDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this todo?")) return;
-
+  const handleToggleComplete = async (id, completed) => {
     try {
+      setClientError(null);
+      await updateTodo(id, { completed: !completed });
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating todo:", error.message);
+      setClientError("Failed to update todo: " + error.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      setClientError(null);
       await deleteTodo(id);
-      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+      window.location.reload();
     } catch (error) {
-      alert("Failed to delete todo. Please try again.");
+      console.error("Error deleting todo:", error.message);
+      setClientError("Failed to delete todo: " + error.message);
     }
-  }
-
-  async function toggleComplete(todo) {
-    try {
-      const updated = await updateTodo(todo.id, { completed: !todo.completed });
-      setTodos((prev) => prev.map((t) => (t.id === todo.id ? updated : t)));
-    } catch (error) {
-      alert("Failed to update todo. Please try again.");
-    }
-  }
-
-  function startEditing(todo) {
-    setEditTodoId(todo.id);
-    setEditTitle(todo.title);
-    setEditBody(todo.body);
-    setEditError(null);
-  }
-
-  async function handleEditSave(id) {
-    try {
-      const updated = await updateTodo(id, {
-        title: editTitle,
-        body: editBody,
-      });
-      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
-      setEditTodoId(null);
-      setEditTitle("");
-      setEditBody("");
-    } catch (error) {
-      setEditError(error.message || "Failed to update todo");
-    }
-  }
-
-  function cancelEdit() {
-    setEditTodoId(null);
-    setEditTitle("");
-    setEditBody("");
-    setEditError(null);
-  }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-4 text-center sm:text-3xl">
-        Todo List
-      </h1>
-
-      {/* Error Message from SSR */}
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-      {/* Add Form */}
-      <form onSubmit={handleAdd} className="flex flex-col gap-3 mb-6">
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Title
-          </label>
+    <div className="min-h-screen  p-4">
+      <div className="max-w-md mx-auto p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-4 text-center">Todo List</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {clientError && <p className="text-red-500 mb-4">{clientError}</p>}
+        <form onSubmit={handleAdd} className="mb-6">
           <input
-            id="title"
+            type="text"
+            placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter title"
-            className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-            aria-label="Todo title"
+            className="w-full p-2 mb-2 border rounded"
           />
-        </div>
-        <div>
-          <label
-            htmlFor="body"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Body
-          </label>
-          <input
-            id="body"
+          <textarea
+            placeholder="Body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Enter body"
-            className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-            aria-label="Todo body"
+            className="w-full p-2 mb-2 border rounded"
           />
-        </div>
-        {formError && <p className="text-red-500 text-sm">{formError}</p>}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        >
-          Add Todo
-        </button>
-      </form>
-
-      {/* Todo List */}
-      {todos.length === 0 && !error ? (
-        <p className="text-gray-500 text-center">
-          No todos yet. Add one above!
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-3 rounded-md shadow-sm"
-            >
-              {editTodoId === todo.id ? (
-                <div className="flex flex-col w-full gap-3">
-                  <input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Edit title"
-                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                    aria-label="Edit todo title"
-                  />
-                  <input
-                    value={editBody}
-                    onChange={(e) => setEditBody(e.target.value)}
-                    placeholder="Edit body"
-                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                    aria-label="Edit todo body"
-                  />
-                  {editError && (
-                    <p className="text-red-500 text-sm">{editError}</p>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditSave(todo.id)}
-                      className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      aria-label="Save todo"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="bg-gray-300 text-gray-800 p-2 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:outline-none"
-                      aria-label="Cancel edit"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+          <button
+            type="submit"
+            className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Add Todo
+          </button>
+        </form>
+        {todos.length === 0 ? (
+          <p className="text-gray-500 text-center">No todos yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {todos.map((todo) => (
+              <li
+                key={todo.id}
+                className="p-3 border border-neutral-400 rounded flex justify-between items-center"
+              >
+                <div>
+                  <Link
+                    href={`/todos/${todo.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    <h2 className={todo.completed ? "line-through" : ""}>
+                      {todo.title}
+                    </h2>
+                  </Link>
+                  <p
+                    className={
+                      todo.completed ? "line-through text-gray-500" : ""
+                    }
+                  >
+                    {todo.body}
+                  </p>
                 </div>
-              ) : (
-                <>
-                  <div className="flex flex-col">
-                    <Link href={`/todos/${todo.id}`} passHref>
-                      <span
-                        className={`cursor-pointer hover:underline ${
-                          todo.completed
-                            ? "line-through text-gray-500"
-                            : "text-blue-600"
-                        }`}
-                        aria-label={`View todo: ${todo.title}`}
-                      >
-                        {todo.title}
-                      </span>
-                    </Link>
-                    <p className="text-sm text-gray-600 mt-1">{todo.body}</p>
-                  </div>
-                  <div className="flex gap-2 items-center mt-2 sm:mt-0">
-                    <button
-                      onClick={() => startEditing(todo)}
-                      className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                      aria-label={`Edit todo: ${todo.title}`}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => toggleComplete(todo)}
-                      className={`px-3 py-1 rounded-md text-sm ${
-                        todo.completed
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      } hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
-                      aria-label={
-                        todo.completed
-                          ? "Mark as incomplete"
-                          : "Mark as complete"
-                      }
-                    >
-                      {todo.completed ? "Undo" : "Done"}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(todo.id)}
-                      className="text-red-500 hover:text-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      aria-label={`Delete todo: ${todo.title}`}
-                    >
-                      ❌
-                    </button>
-                  </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() =>
+                      handleToggleComplete(todo.id, todo.completed)
+                    }
+                    className={`p-1 rounded ${
+                      todo.completed ? "bg-yellow-500" : "bg-green-500"
+                    } text-white`}
+                  >
+                    {todo.completed ? "Undo" : "Complete"}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(todo.id)}
+                    className="p-1 bg-red-500 text-white rounded"
+                  >
+                    ❌
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
 
 export async function getServerSideProps() {
+  console.log("Running getServerSideProps for Home...");
   try {
-    const initialTodos = await fetchTodos();
-    return { props: { initialTodos } };
+    const todos = await fetchTodos();
+    console.log("Initial todos fetched:", todos);
+    return {
+      props: {
+        todos,
+        error: null,
+      },
+    };
   } catch (error) {
     console.error("Error in getServerSideProps:", error.message, error.stack);
     return {
       props: {
-        initialTodos: [],
-        error: error.message || "Failed to load todos",
+        todos: [],
+        error: "Failed to load todos: " + error.message,
       },
     };
   }
