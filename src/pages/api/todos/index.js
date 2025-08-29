@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       typeof title !== "string" ||
       typeof body !== "string"
     ) {
+      console.log("Invalid POST payload:", req.body);
       return res.status(400).json({
         data: null,
         message: null,

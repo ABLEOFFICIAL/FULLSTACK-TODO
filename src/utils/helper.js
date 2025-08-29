@@ -22,7 +22,13 @@ export async function fetchTodos() {
     console.log("Fetched todos:", data);
     return data;
   } catch (error) {
-    console.error("Error fetching todos:", error.message, error.stack);
+    console.error(
+      "Error fetching todos:",
+      error.message,
+      error.stack,
+      "BASE_URL:",
+      BASE_URL
+    );
     throw new Error("Failed to fetch todos: " + error.message);
   }
 }
@@ -55,7 +61,13 @@ export async function fetchTodoById(id) {
     console.log("Fetched todo by ID:", data);
     return data;
   } catch (error) {
-    console.error("Error fetching todo by ID:", error.message, error.stack);
+    console.error(
+      "Error fetching todo by ID:",
+      error.message,
+      error.stack,
+      "BASE_URL:",
+      BASE_URL
+    );
     throw error;
   }
 }
@@ -99,7 +111,13 @@ export async function addTodo(newTodo) {
     console.log("Added todo:", data);
     return data;
   } catch (error) {
-    console.error("Error adding todo:", error.message, error.stack);
+    console.error(
+      "Error adding todo:",
+      error.message,
+      error.stack,
+      "BASE_URL:",
+      BASE_URL
+    );
     throw error;
   }
 }
@@ -153,7 +171,13 @@ export async function updateTodo(id, updates) {
     console.log("Updated todo:", data);
     return data;
   } catch (error) {
-    console.error("Error updating todo:", error.message, error.stack);
+    console.error(
+      "Error updating todo:",
+      error.message,
+      error.stack,
+      "BASE_URL:",
+      BASE_URL
+    );
     throw error;
   }
 }
@@ -186,7 +210,13 @@ export async function deleteTodo(id) {
     console.log("Deleted todo:", data);
     return data;
   } catch (error) {
-    console.error("Error deleting todo:", error.message, error.stack);
+    console.error(
+      "Error deleting todo:",
+      error.message,
+      error.stack,
+      "BASE_URL:",
+      BASE_URL
+    );
     throw error;
   }
 }

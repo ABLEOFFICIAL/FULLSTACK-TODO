@@ -5,6 +5,7 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
+    console.log("Invalid ID:", id);
     return res.status(400).json({
       data: null,
       message: null,
@@ -18,6 +19,7 @@ export default async function handler(req, res) {
       const docRef = doc(db, "todos", id);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
+        console.log("Todo not found for ID:", id);
         return res.status(404).json({
           data: null,
           message: null,
@@ -47,6 +49,7 @@ export default async function handler(req, res) {
       (body !== undefined && (typeof body !== "string" || !body.trim())) ||
       (completed !== undefined && typeof completed !== "boolean")
     ) {
+      console.log("Invalid PUT payload:", req.body);
       return res.status(400).json({
         data: null,
         message: null,
@@ -56,10 +59,11 @@ export default async function handler(req, res) {
     }
 
     try {
-      console.log(`Updating todo with ID: ${id}`);
+      console.log(`Updating todo with ID: ${id}`, req.body);
       const docRef = doc(db, "todos", id);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
+        console.log("Todo not found for ID:", id);
         return res.status(404).json({
           data: null,
           message: null,
@@ -95,6 +99,7 @@ export default async function handler(req, res) {
       const docRef = doc(db, "todos", id);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
+        console.log("Todo not found for ID:", id);
         return res.status(404).json({
           data: null,
           message: null,

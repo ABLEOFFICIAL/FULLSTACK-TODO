@@ -1,185 +1,119 @@
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { fetchTodoById, updateTodo, deleteTodo } from "../../utils/helper";
+import { fetchTodoById, updateTodo } from "../../utils/helper";
+import Link from "next/link";
 
-export default function TodoDetails({ todo, error }) {
+export default function TodoDetail({ todo, error }) {
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(todo?.title || "");
-  const [editBody, setEditBody] = useState(todo?.body || "");
-  const [editError, setEditError] = useState(null);
+  const [title, setTitle] = useState(todo?.title || "");
+  const [body, setBody] = useState(todo?.body || "");
+  const [clientError, setClientError] = useState(null);
 
-  async function handleEditSave() {
-    setEditError(null);
-    try {
-      const updated = await updateTodo(todo.id, {
-        title: editTitle,
-        body: editBody,
-      });
-      setEditTitle(updated.title);
-      setEditBody(updated.body);
-      setIsEditing(false);
-    } catch (error) {
-      setEditError(error.message || "Failed to update todo");
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) {
+      setClientError("Title and body are required");
+      return;
     }
-  }
-
-  async function handleDelete() {
-    if (!window.confirm("Are you sure you want to delete this todo?")) return;
-
     try {
-      await deleteTodo(todo.id);
-      router.push("/"); // Redirect to home after deletion
+      setClientError(null);
+      await updateTodo(todo.id, { title, body });
+      router.push("/");
     } catch (error) {
-      alert("Failed to delete todo. Please try again.");
+      console.error("Error updating todo:", error.message);
+      setClientError("Failed to update todo: " + error.message);
     }
-  }
+  };
 
   if (error) {
     return (
-      <div className="max-w-xl mx-auto p-4 sm:p-6">
-        <h1 className="text-2xl font-bold mb-4 text-center sm:text-3xl">
-          Todo Details
-        </h1>
-        <p className="text-red-500 text-center mb-4">Error: {error}</p>
-        <Link href="/" className="text-blue-600 hover:underline">
-          Back to Todo List
-        </Link>
+      <div className="min-h-screen bg-gray-100 p-4">
+        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4 text-center">Error</h1>
+          <p className="text-red-500">{error}</p>
+          <Link href="/" className="text-blue-500 hover:underline">
+            Back to Home
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (!todo) {
     return (
-      <div className="max-w-xl mx-auto p-4 sm:p-6">
-        <h1 className="text-2xl font-bold mb-4 text-center sm:text-3xl">
-          Todo Details
-        </h1>
-        <p className="text-gray-500 text-center mb-4">Todo not found</p>
-        <Link href="/" className="text-blue-600 hover:underline">
-          Back to Todo List
-        </Link>
+      <div className="min-h-screen bg-gray-100 p-4">
+        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4 text-center">
+            Todo Not Found
+          </h1>
+          <Link href="/" className="text-blue-500 hover:underline">
+            Back to Home
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-4 text-center sm:text-3xl">
-        Todo Details
-      </h1>
-      <Link
-        href="/"
-        className="text-blue-600 hover:underline mb-4 inline-block"
-      >
-        Back to Todo List
-      </Link>
-
-      {isEditing ? (
-        <div className="flex flex-col gap-3 mb-6">
-          <div>
-            <label
-              htmlFor="edit-title"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Title
-            </label>
-            <input
-              id="edit-title"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="Edit title"
-              className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              aria-label="Edit todo title"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="edit-body"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Body
-            </label>
-            <textarea
-              id="edit-body"
-              value={editBody}
-              onChange={(e) => setEditBody(e.target.value)}
-              placeholder="Edit body"
-              className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              rows="4"
-              aria-label="Edit todo body"
-            />
-          </div>
-          {editError && <p className="text-red-500 text-sm">{editError}</p>}
-          <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-4 text-center">Edit Todo</h1>
+        {clientError && <p className="text-red-500 mb-4">{clientError}</p>}
+        <form onSubmit={handleUpdate} className="mb-6">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 mb-2 border rounded"
+          />
+          <textarea
+            placeholder="Body"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className="w-full p-2 mb-2 border rounded"
+          />
+          <div className="flex space-x-2">
             <button
-              onClick={handleEditSave}
-              className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              aria-label="Save todo"
+              type="submit"
+              className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Save
             </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className="bg-gray-300 text-gray-800 p-2 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:outline-none"
-              aria-label="Cancel edit"
+            <Link
+              href="/"
+              className="flex-1 p-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-center"
             >
               Cancel
-            </button>
+            </Link>
           </div>
-        </div>
-      ) : (
-        <div className="border p-4 rounded-md shadow-sm bg-white">
-          <h2
-            className={`text-xl font-semibold mb-2 ${
-              todo.completed ? "line-through text-gray-500" : "text-gray-800"
-            }`}
-          >
-            {todo.title}
-          </h2>
-          <p className="text-gray-600 mb-2">{todo.body}</p>
-          <p className="text-sm text-gray-500">
-            Status: {todo.completed ? "Completed" : "Incomplete"}
-          </p>
-          <p className="text-sm text-gray-500">
-            Created: {new Date(todo.createdAt).toLocaleString()}
-          </p>
-          <p className="text-sm text-gray-500">
-            Updated: {new Date(todo.updatedAt).toLocaleString()}
-          </p>
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-              aria-label={`Edit todo: ${todo.title}`}
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              aria-label={`Delete todo: ${todo.title}`}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      )}
+        </form>
+        <p className={todo.completed ? "line-through text-gray-500" : ""}>
+          Status: {todo.completed ? "Completed" : "Incomplete"}
+        </p>
+      </div>
     </div>
   );
 }
 
-export async function getServerSideProps(context) {
-  const { id } = context.params;
-
+export async function getServerSideProps({ params }) {
+  console.log("Running getServerSideProps for TodoDetail, ID:", params.id);
   try {
-    const todo = await fetchTodoById(id);
-    return { props: { todo } };
-  } catch (error) {
-    console.error("Error in getServerSideProps:", error);
+    const todo = await fetchTodoById(params.id);
+    console.log("Todo fetched for detail:", todo);
     return {
-      props: { todo: null, error: error.message || "Failed to load todo" },
+      props: {
+        todo,
+        error: null,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getServerSideProps:", error.message, error.stack);
+    return {
+      props: {
+        todo: null,
+        error: "Failed to load todo: " + error.message,
+      },
     };
   }
 }
