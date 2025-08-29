@@ -1,17 +1,1 @@
-[
-  {
-    "id": "5b737bff-8ea4-4e6c-b4ac-f15ab1fc8b48",
-    "title": "games",
-    "body": "play ludo and chess",
-    "completed": true,
-    "createdAt": "2025-08-29T09:43:05.842Z",
-    "updatedAt": "2025-08-29T12:23:53.826Z"
-  },
-  {
-    "id": "92452df0-3707-4324-bdfc-713a282a1175",
-    "title": "hshsh",
-    "body": "ssnnsns",
-    "completed": false,
-    "createdAt": "2025-08-29T12:23:51.215Z"
-  }
-]
+[]
