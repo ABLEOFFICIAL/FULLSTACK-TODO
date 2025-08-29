@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Link from "next/link";
-import { fetchTodos, addTodo, deleteTodo, updateTodo } from "./utils/helper";
+import { fetchTodos, addTodo, deleteTodo, updateTodo } from "../utils/helper";
 
 export default function Home({ initialTodos, error }) {
   const [todos, setTodos] = useState(initialTodos || []);

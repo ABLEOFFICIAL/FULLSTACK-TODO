@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchTodoById } from "../utils/helper";
+import { fetchTodoById } from "../../utils/helper";
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
