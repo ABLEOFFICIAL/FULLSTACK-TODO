@@ -1,55 +1,44 @@
-// utils/helper.js
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-// Get the base URL for API requests, supporting both server and client environments
-function getBaseUrl() {
-  if (typeof window === "undefined") {
-    // Server-side: Use environment variable or fallback to localhost
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-  }
-  // Client-side: Use relative URL
-  return "";
-}
-
-// Fetch all todos
 export async function fetchTodos() {
   try {
-    const res = await fetch(`${getBaseUrl()}/api/todos`, { cache: "no-store" });
+    console.log("Fetching todos from:", `${BASE_URL}/api/todos`);
+    const res = await fetch(`${BASE_URL}/api/todos`, { cache: "no-store" });
     const { data, error } = await res.json();
     if (!res.ok) {
       throw new Error(error || `Failed to fetch todos (status: ${res.status})`);
     }
+    console.log("Fetched todos from API:", data);
     return data;
   } catch (error) {
-    console.error("Error fetching todos:", error);
-    throw error;
+    console.error("Error fetching todos:", error.message, error.stack);
+    throw new Error("Failed to fetch todos: " + error.message);
   }
 }
 
-// Fetch a single todo by ID
 export async function fetchTodoById(id) {
-  // Validate input
   if (!id || typeof id !== "string") {
     throw new Error("Invalid todo ID");
   }
 
   try {
-    const res = await fetch(`${getBaseUrl()}/api/todos/${id}`, {
+    console.log("Fetching todo by ID from:", `${BASE_URL}/api/todos/${id}`);
+    const res = await fetch(`${BASE_URL}/api/todos/${id}`, {
       cache: "no-store",
     });
     const { data, error } = await res.json();
     if (!res.ok) {
       throw new Error(error || `Failed to fetch todo (status: ${res.status})`);
     }
+    console.log("Fetched todo by ID:", data);
     return data;
   } catch (error) {
-    console.error("Error fetching todo by ID:", error);
+    console.error("Error fetching todo by ID:", error.message, error.stack);
     throw error;
   }
 }
 
-// Add a new todo
 export async function addTodo(newTodo) {
-  // Validate input
   if (
     !newTodo ||
     typeof newTodo.title !== "string" ||
@@ -61,28 +50,28 @@ export async function addTodo(newTodo) {
   }
 
   try {
-    const res = await fetch(`${getBaseUrl()}/api/todos`, {
+    console.log("Adding todo to:", `${BASE_URL}/api/todos`);
+    const res = await fetch(`${BASE_URL}/api/todos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: newTodo.title.trim().slice(0, 100), // Max 100 chars
-        body: newTodo.body.trim().slice(0, 500), // Max 500 chars
+        title: newTodo.title.trim().slice(0, 100),
+        body: newTodo.body.trim().slice(0, 500),
       }),
     });
     const { data, error } = await res.json();
     if (!res.ok) {
       throw new Error(error || `Failed to add todo (status: ${res.status})`);
     }
+    console.log("Added todo:", data);
     return data;
   } catch (error) {
-    console.error("Error adding todo:", error);
+    console.error("Error adding todo:", error.message, error.stack);
     throw error;
   }
 }
 
-// Update an existing todo
 export async function updateTodo(id, updates) {
-  // Validate inputs
   if (!id || typeof id !== "string") {
     throw new Error("Invalid todo ID");
   }
@@ -101,12 +90,13 @@ export async function updateTodo(id, updates) {
   }
 
   try {
-    const res = await fetch(`${getBaseUrl()}/api/todos/${id}`, {
+    console.log("Updating todo at:", `${BASE_URL}/api/todos/${id}`);
+    const res = await fetch(`${BASE_URL}/api/todos/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...(updates.title && { title: updates.title.trim().slice(0, 100) }), // Max 100 chars
-        ...(updates.body && { body: updates.body.trim().slice(0, 500) }), // Max 500 chars
+        ...(updates.title && { title: updates.title.trim().slice(0, 100) }),
+        ...(updates.body && { body: updates.body.trim().slice(0, 500) }),
         ...(updates.completed !== undefined && {
           completed: updates.completed,
         }),
@@ -116,31 +106,32 @@ export async function updateTodo(id, updates) {
     if (!res.ok) {
       throw new Error(error || `Failed to update todo (status: ${res.status})`);
     }
+    console.log("Updated todo:", data);
     return data;
   } catch (error) {
-    console.error("Error updating todo:", error);
+    console.error("Error updating todo:", error.message, error.stack);
     throw error;
   }
 }
 
-// Delete a todo
 export async function deleteTodo(id) {
-  // Validate input
   if (!id || typeof id !== "string") {
     throw new Error("Invalid todo ID");
   }
 
   try {
-    const res = await fetch(`${getBaseUrl()}/api/todos/${id}`, {
+    console.log("Deleting todo at:", `${BASE_URL}/api/todos/${id}`);
+    const res = await fetch(`${BASE_URL}/api/todos/${id}`, {
       method: "DELETE",
     });
     const { data, error } = await res.json();
     if (!res.ok) {
       throw new Error(error || `Failed to delete todo (status: ${res.status})`);
     }
+    console.log("Deleted todo:", data);
     return data;
   } catch (error) {
-    console.error("Error deleting todo:", error);
+    console.error("Error deleting todo:", error.message, error.stack);
     throw error;
   }
 }
