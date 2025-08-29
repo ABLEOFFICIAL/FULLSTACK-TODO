@@ -1,101 +1,126 @@
-import { db } from "@/lib/firebase";
+import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export default async function handler(req, res) {
   const { id } = req.query;
 
-  // Validate ID
   if (!id || typeof id !== "string") {
-    return res
-      .status(400)
-      .json({ data: null, message: null, error: "Invalid todo ID" });
+    return res.status(400).json({
+      data: null,
+      message: null,
+      error: "Invalid todo ID",
+    });
   }
-
-  // Standard response structure
-  const respond = (data, status = 200, message = null, error = null) => {
-    res.status(status).json({ data, message, error });
-  };
 
   if (req.method === "GET") {
     try {
-      const todoDoc = await getDoc(doc(db, "todos", id));
-      if (!todoDoc.exists()) {
-        return respond(null, 404, null, "Todo not found");
+      console.log(`Fetching todo with ID: ${id}`);
+      const docRef = doc(db, "todos", id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        return res.status(404).json({
+          data: null,
+          message: null,
+          error: "Todo not found",
+        });
       }
-      return respond(
-        { id: todoDoc.id, ...todoDoc.data() },
-        200,
-        "Todo fetched successfully"
-      );
+      console.log("Todo fetched:", { id, ...docSnap.data() });
+      return res.status(200).json({
+        data: { id, ...docSnap.data() },
+        message: "Todo fetched successfully",
+        error: null,
+      });
     } catch (error) {
-      console.error("Error fetching todo:", error);
-      return respond(null, 500, null, "Failed to fetch todo");
+      console.error("Error fetching todo:", error.message, error.stack);
+      return res.status(500).json({
+        data: null,
+        message: null,
+        error: "Failed to fetch todo: " + error.message,
+      });
     }
   }
 
   if (req.method === "PUT") {
+    const { title, body, completed } = req.body;
+    if (
+      (title !== undefined && (typeof title !== "string" || !title.trim())) ||
+      (body !== undefined && (typeof body !== "string" || !body.trim())) ||
+      (completed !== undefined && typeof completed !== "boolean")
+    ) {
+      return res.status(400).json({
+        data: null,
+        message: null,
+        error:
+          "Invalid updates: title/body must be non-empty strings, completed must be a boolean",
+      });
+    }
+
     try {
-      const { title, body, completed } = req.body;
-
-      // Validate inputs
-      if (
-        (title !== undefined && (typeof title !== "string" || !title.trim())) ||
-        (body !== undefined && (typeof body !== "string" || !body.trim())) ||
-        (completed !== undefined && typeof completed !== "boolean")
-      ) {
-        return respond(
-          null,
-          400,
-          null,
-          "Invalid input: title and body must be non-empty strings, completed must be a boolean"
-        );
+      console.log(`Updating todo with ID: ${id}`);
+      const docRef = doc(db, "todos", id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        return res.status(404).json({
+          data: null,
+          message: null,
+          error: "Todo not found",
+        });
       }
-
-      // Check if todo exists
-      const todoDoc = await getDoc(doc(db, "todos", id));
-      if (!todoDoc.exists()) {
-        return respond(null, 404, null, "Todo not found");
-      }
-
-      // Update only provided fields
-      const updateData = {
-        ...(title !== undefined && { title: title.trim().slice(0, 100) }),
-        ...(body !== undefined && { body: body.trim().slice(0, 500) }),
+      const updates = {
+        ...(title && { title: title.trim().slice(0, 100) }),
+        ...(body && { body: body.trim().slice(0, 500) }),
         ...(completed !== undefined && { completed }),
         updatedAt: new Date().toISOString(),
       };
-
-      await updateDoc(doc(db, "todos", id), updateData);
-      return respond(
-        { id, ...todoDoc.data(), ...updateData },
-        200,
-        "Todo updated successfully"
-      );
+      await updateDoc(docRef, updates);
+      console.log("Todo updated:", { id, ...updates });
+      return res.status(200).json({
+        data: { id, ...docSnap.data(), ...updates },
+        message: "Todo updated successfully",
+        error: null,
+      });
     } catch (error) {
-      console.error("Error updating todo:", error);
-      return respond(null, 500, null, "Failed to update todo");
+      console.error("Error updating todo:", error.message, error.stack);
+      return res.status(500).json({
+        data: null,
+        message: null,
+        error: "Failed to update todo: " + error.message,
+      });
     }
   }
 
   if (req.method === "DELETE") {
     try {
-      const todoDoc = await getDoc(doc(db, "todos", id));
-      if (!todoDoc.exists()) {
-        return respond(null, 404, null, "Todo not found");
+      console.log(`Deleting todo with ID: ${id}`);
+      const docRef = doc(db, "todos", id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        return res.status(404).json({
+          data: null,
+          message: null,
+          error: "Todo not found",
+        });
       }
-      await deleteDoc(doc(db, "todos", id));
-      return respond(
-        { id, ...todoDoc.data() },
-        200,
-        "Todo deleted successfully"
-      );
+      await deleteDoc(docRef);
+      console.log("Todo deleted:", id);
+      return res.status(200).json({
+        data: { id },
+        message: "Todo deleted successfully",
+        error: null,
+      });
     } catch (error) {
-      console.error("Error deleting todo:", error);
-      return respond(null, 500, null, "Failed to delete todo");
+      console.error("Error deleting todo:", error.message, error.stack);
+      return res.status(500).json({
+        data: null,
+        message: null,
+        error: "Failed to delete todo: " + error.message,
+      });
     }
   }
 
-  // Handle unsupported methods
-  res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
-  return respond(null, 405, null, `Method ${req.method} Not Allowed`);
+  return res.status(405).json({
+    data: null,
+    message: null,
+    error: "Method not allowed",
+  });
 }
