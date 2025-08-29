@@ -1,115 +1,165 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useState } from "react";
+import Link from "next/link";
+import { fetchTodos, addTodo, deleteTodo, updateTodo } from "./utils/helper";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+export default function Home({ initialTodos, error }) {
+  const [todos, setTodos] = useState(initialTodos || []);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [formError, setFormError] = useState(null);
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  async function handleAdd(e) {
+    e.preventDefault();
+    setFormError(null);
 
-export default function Home() {
+    try {
+      const newTodo = await addTodo({ title, body });
+      setTodos((prev) => [...prev, newTodo]);
+      setTitle("");
+      setBody("");
+    } catch (error) {
+      setFormError(error.message || "Failed to add todo");
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this todo?")) return;
+
+    try {
+      await deleteTodo(id);
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    } catch (error) {
+      alert("Failed to delete todo. Please try again.");
+    }
+  }
+
+  async function toggleComplete(todo) {
+    try {
+      const updated = await updateTodo(todo.id, { completed: !todo.completed });
+      setTodos((prev) => prev.map((t) => (t.id === todo.id ? updated : t)));
+    } catch (error) {
+      alert("Failed to update todo. Please try again.");
+    }
+  }
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="max-w-2xl mx-auto p-4 sm:p-6">
+      <h1 className="text-2xl font-bold mb-4 text-center sm:text-3xl">
+        Todo List ✅
+      </h1>
+
+      {/* Error Message from SSR */}
+      {error && (
+        <p className="text-red-500 text-center mb-4">
+          Failed to load todos: {error}
+        </p>
+      )}
+
+      {/* Add Form */}
+      <form onSubmit={handleAdd} className="flex flex-col gap-3 mb-6">
+        <div>
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Title
+          </label>
+          <input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter title"
+            className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div>
+          <label
+            htmlFor="body"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Body
+          </label>
+          <input
+            id="body"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Enter body"
+            className="mt-1 w-full border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+        {formError && <p className="text-red-500 text-sm">{formError}</p>}
+        <button
+          type="submit"
+          className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Add Todo
+        </button>
+      </form>
+
+      {/* Todo List */}
+      {todos.length === 0 ? (
+        <p className="text-gray-500 text-center">
+          No todos yet. Add one above!
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {todos.map((todo) => (
+            <li
+              key={todo.id}
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-3 rounded-md shadow-sm"
+            >
+              <div className="flex flex-col">
+                <Link href={`/todos/${todo.id}`} passHref>
+                  <span
+                    className={`cursor-pointer hover:underline ${
+                      todo.completed
+                        ? "line-through text-gray-500"
+                        : "text-blue-600"
+                    }`}
+                    aria-label={`View todo: ${todo.title}`}
+                  >
+                    {todo.title}
+                  </span>
+                </Link>
+                <p className="text-sm text-gray-600 mt-1">{todo.body}</p>
+              </div>
+              <div className="flex gap-2 items-center mt-2 sm:mt-0">
+                <button
+                  onClick={() => toggleComplete(todo)}
+                  className={`px-3 py-1 rounded-md text-sm ${
+                    todo.completed
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  } hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+                  aria-label={
+                    todo.completed ? "Mark as incomplete" : "Mark as complete"
+                  }
+                >
+                  {todo.completed ? "Undo" : "Done"}
+                </button>
+                <button
+                  onClick={() => handleDelete(todo.id)}
+                  className="text-red-500 hover:text-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  aria-label={`Delete todo: ${todo.title}`}
+                >
+                  ❌
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
+}
+
+// SSR fetch
+export async function getServerSideProps() {
+  try {
+    const initialTodos = await fetchTodos();
+    return { props: { initialTodos } };
+  } catch (error) {
+    console.error("Error in getServerSideProps:", error);
+    return { props: { initialTodos: [], error: "Failed to load todos" } };
+  }
 }
