@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { fetchTodoById, updateTodo } from "../../utils/helper";
 import Link from "next/link";
+import { FaMarsAndVenus } from "react-icons/fa6";
 
 export default function TodoDetail({ todo, error }) {
   const router = useRouter();
@@ -27,10 +28,10 @@ export default function TodoDetail({ todo, error }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+      <div className="min-h-screen flex justify-center items-center bg-[#f5f5f5] text-black p-4">
+        <div className="max-w-lg bg-white mx-auto p-6 rounded-xl shadow-md">
           <h1 className="text-2xl font-bold mb-4 text-center">Error</h1>
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500 mb-4">{error}</p>
           <Link href="/" className="text-blue-500 hover:underline">
             Back to Home
           </Link>
@@ -41,8 +42,8 @@ export default function TodoDetail({ todo, error }) {
 
   if (!todo) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+      <div className="min-h-screen flex justify-center items-center bg-[#f5f5f5] text-black p-4">
+        <div className="max-w-lg bg-white mx-auto p-6 rounded-xl shadow-md">
           <h1 className="text-2xl font-bold mb-4 text-center">
             Todo Not Found
           </h1>
@@ -55,8 +56,8 @@ export default function TodoDetail({ todo, error }) {
   }
 
   return (
-    <div className="min-h-screen  p-4">
-      <div className="max-w-md mx-auto  p-6 rounded-lg shadow-md">
+    <div className="min-h-screen flex justify-center items-center bg-[#f5f5f5] text-black p-4">
+      <div className="max-w-lg bg-white mx-auto p-6 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Edit Todo</h1>
         {clientError && <p className="text-red-500 mb-4">{clientError}</p>}
         <form onSubmit={handleUpdate} className="mb-6">
@@ -65,30 +66,37 @@ export default function TodoDetail({ todo, error }) {
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full p-2 mb-2 border rounded-xl focus:outline-none"
           />
           <textarea
             placeholder="Body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full p-2 mb-2 border rounded-xl focus:outline-none"
           />
           <div className="flex space-x-2">
             <button
               type="submit"
-              className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="flex-1 p-2 bg-[#fece1f] text-black font-semibold rounded-xl flex justify-center items-center gap-1"
             >
+              <FaMarsAndVenus />
               Save
             </button>
             <Link
               href="/"
-              className="flex-1 p-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-center"
+              className="flex-1 p-2 bg-neutral-400 text-white font-semibold rounded-xl text-center"
             >
               Cancel
             </Link>
           </div>
         </form>
-        <p className={todo.completed ? "line-through text-gray-500" : ""}>
+        <p
+          className={
+            todo.completed
+              ? "line-through text-gray-500"
+              : "font-medium text-neutral-600"
+          }
+        >
           Status: {todo.completed ? "Completed" : "Incomplete"}
         </p>
       </div>

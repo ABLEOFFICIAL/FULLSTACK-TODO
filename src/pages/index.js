@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../utils/helper";
+import { FaPlus } from "react-icons/fa6";
+import { ImBin } from "react-icons/im";
+import { GrStatusGood } from "react-icons/gr";
+
 import Link from "next/link";
 
 export default function Home({ todos, error }) {
@@ -48,8 +52,8 @@ export default function Home({ todos, error }) {
   };
 
   return (
-    <div className="min-h-screen  p-4">
-      <div className="max-w-md mx-auto p-6 rounded-lg shadow-md">
+    <div className="min-h-screen flex justify-center items-center bg-[#f5f5f5] text-black p-4">
+      <div className="max-w-lg bg-white mx-auto p-6 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Todo List</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         {clientError && <p className="text-red-500 mb-4">{clientError}</p>}
@@ -59,42 +63,47 @@ export default function Home({ todos, error }) {
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full p-2 mb-2 border rounded-xl focus:outline-none"
           />
           <textarea
             placeholder="Body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full p-2 mb-2 border rounded"
+            className="w-full p-2 mb-2 border rounded-xl focus:outline-none"
           />
           <button
             type="submit"
-            className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="w-full font-semibold p-2 bg-[#fece1f] text-black flex justify-center items-center gap-1 rounded-xl"
           >
+            <FaPlus />
             Add Todo
           </button>
         </form>
         {todos.length === 0 ? (
           <p className="text-gray-500 text-center">No todos yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             {todos.map((todo) => (
-              <li
+              <Link
+                href={`/todos/${todo.id}`}
                 key={todo.id}
-                className="p-3 border border-neutral-400 rounded flex justify-between items-center"
+                className="p-3 bg-[#f5f5f5] shadow-md rounded-xl flex justify-between items-center"
               >
                 <div>
-                  <Link
-                    href={`/todos/${todo.id}`}
-                    className="text-blue-500 hover:underline"
+                  <h2
+                    className={
+                      todo.completed
+                        ? "line-through"
+                        : "font-semibold text-base"
+                    }
                   >
-                    <h2 className={todo.completed ? "line-through" : ""}>
-                      {todo.title}
-                    </h2>
-                  </Link>
+                    {todo.title}
+                  </h2>
                   <p
                     className={
-                      todo.completed ? "line-through text-gray-500" : ""
+                      todo.completed
+                        ? "line-through text-gray-500"
+                        : "font-medium text-neutral-600"
                     }
                   >
                     {todo.body}
@@ -102,23 +111,31 @@ export default function Home({ todos, error }) {
                 </div>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() =>
-                      handleToggleComplete(todo.id, todo.completed)
-                    }
-                    className={`p-1 rounded ${
-                      todo.completed ? "bg-yellow-500" : "bg-green-500"
-                    } text-white`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleToggleComplete(todo.id, todo.completed);
+                    }}
+                    className={`p-1 rounded-xl cursor-pointer `}
                   >
-                    {todo.completed ? "Undo" : "Complete"}
+                    {todo.completed ? (
+                      <span className="border-2 rounded-full w-4 h-4 block"></span>
+                    ) : (
+                      <GrStatusGood size={20} />
+                    )}
                   </button>
                   <button
-                    onClick={() => handleDelete(todo.id)}
-                    className="p-1 bg-red-500 text-white rounded"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDelete(todo.id);
+                    }}
+                    className="p-1 rounded-xl cursor-pointer"
                   >
-                    ❌
+                    <ImBin />
                   </button>
                 </div>
-              </li>
+              </Link>
             ))}
           </ul>
         )}
