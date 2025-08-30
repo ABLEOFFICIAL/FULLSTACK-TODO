@@ -119,9 +119,9 @@ export default function Home({ todos, error }) {
                     className={`p-1 rounded-xl cursor-pointer `}
                   >
                     {todo.completed ? (
-                      <span className="border-2 rounded-full w-4 h-4 block"></span>
-                    ) : (
                       <GrStatusGood size={20} />
+                    ) : (
+                      <span className="border-2 rounded-full w-4 h-4 block"></span>
                     )}
                   </button>
                   <button
